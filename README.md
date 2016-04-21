@@ -19,7 +19,8 @@
 6. [Getting started](#getting-started)
 7. [Changelog](#changelog)
 8. [Alternative version](#alternative-version)
-9. [License](#license)
+9. [Troobleshooting](#troubleshooting)
+10. [License](#license)
 
 ## Overview
 
@@ -51,6 +52,20 @@ A *transparent wrapper* that adds **regex**, **aliases**, **gateways**, **includ
 
 Connect to `hosta` using `hostb` as gateway.
 
+```
+  ┌─────┐
+  │ YOU │─ ─ ─ ─ ─
+  └─────┘         │
+     ┃            ▽
+     ┃         ┌─────┐
+ firewall      │hostb│
+     ┃         └─────┘
+     ▼            │
+  ┌─────┐
+  │hosta│◁─ ─ ─ ─ ┘
+  └─────┘
+```
+
 ```console
 $ ssh hosta/hostb
 user@hosta $
@@ -60,7 +75,22 @@ Equivalent to `ssh -o ProxyCommand="ssh hostb nc %h %p" hosta`
 
 ---
 
-Connect to `host` using `hostb` as a gateway using `hostc` as a gateway.
+Connect to `hosta` using `hostb` as a gateway using `hostc` as a gateway.
+
+```
+  ┌─────┐              ┌─────┐
+  │ YOU │─ ─ ─ ─ ─ ─ ─▷│hostc│
+  └─────┘              └─────┘
+     ┃                    │
+     ┃
+ firewall                 │
+     ┃
+     ┃                    │
+     ▼                    ▽
+  ┌─────┐              ┌─────┐
+  │hosta│◁─ ─ ─ ─ ─ ─ ─│hostb│
+  └─────┘              └─────┘
+```
 
 ```console
 $ ssh hosta/hostb/hostc
@@ -73,7 +103,7 @@ Equivalent to `ssh -o ProxyCommand="ssh -o ProxyCommand='ssh hostc nc %h %p' hos
 
 * Automatically regenerates `~/.ssh/config` file when needed
 * Inspect parent process to determine log level (if you use `ssh -vv`, **assh** will automatically be ran in debug mode)
-* Automatically creates `ControlPath` directories so you can use *slashes* in your `ControlPath` option
+* Automatically creates `ControlPath` directories so you can use *slashes* in your `ControlPath` option, can be disabled with the `NoControlMasterMkdir: true` configuration in host or globally.
 
 ## Configuration
 
@@ -122,6 +152,26 @@ hosts:
     - lisa-template
     - simpson-template
 
+  marvin:
+    # ssh marvin    -> ssh marvin    -p 23
+    # ssh sad-robot -> ssh sad-robot -p 23
+    # ssh bighead   -> ssh bighead   -p 23
+    # aliases inherit everything from marvin, except hostname
+    Port: 23
+    Aliases:
+    - sad-robot
+    - bighead
+
+  dolphin:
+    # ssh dolphin   -> ssh dolphin -p 24
+    # ssh ecco      -> ssh dolphin -p 24
+    # same as above, but with fixed hostname
+    Port: 24
+    Hostname: dolphin
+    Aliases:
+    - sad-robot
+    - bighead
+
   schooltemplate:
     User: student
     IdentityFile: ~/.ssh/school-rsa
@@ -144,7 +194,9 @@ hosts:
     - schoolgw
     Inherits:
     - schooltemplate
-    
+    # do not automatically create `ControlPath` -> may result in error
+    NoControlMasterMkdir: true
+
   "*.shortcut1":
     ResolveCommand: /bin/sh -c "echo %h | sed s/.shortcut1/.my-long-domain-name.com/"
 
@@ -235,10 +287,16 @@ go get -u github.com/moul/advanced-ssh-config/cmd/assh
 
 ---
 
-Get the latest version using homebrew (Mac OS X):
+Get the latest released version using homebrew (Mac OS X):
 
 ```bash
 brew install assh
+```
+
+Build the latest version
+
+```bash
+brew install assh --HEAD
 ```
 
 ---
@@ -256,11 +314,17 @@ Get a released version on: https://github.com/moul/advanced-ssh-config/releases
 
 ### master (unreleased)
 
+* Add build information in .ssh/config header ([#49](https://github.com/moul/advanced-ssh-config/issues/49))
+* Add Autocomplete support ([#48](https://github.com/moul/advanced-ssh-config/issues/48))
+* Initial `Aliases` support ([#133](https://github.com/moul/advanced-ssh-config/issues/133))
+* Use args[0] as ProxyCommand ([#134](https://github.com/moul/advanced-ssh-config/issues/134))
+* Add `NoControlMasterMkdir` option to disable automatic creation of directories for gateways ([#124](https://github.com/moul/advanced-ssh-config/issues/124))
 * Fix: Allow `$(...)` syntax in the `ResolveCommand` function ([#117](https://github.com/moul/advanced-ssh-config/issues/117))
 * Printing the error of a failing `ResolveCommand` ([#117](https://github.com/moul/advanced-ssh-config/issues/117))
 * Fix: `Gateways` field is no longer ignored when the `HostName` field is present ([#102](https://github.com/moul/advanced-ssh-config/issues/102))
 * Ignore SIGHUP, close goroutines and export written bytes ([#112](https://github.com/moul/advanced-ssh-config/pull/112)) ([@QuentinPerez](https://github.com/QuentinPerez))
 * Various documentation improvements ([@ashmatadeen](https://github.com/ashmatadeen), [@loliee](https://github.com/loliee), [@cerisier](https://github.com/cerisier))
+* Support of new SSH configuration fields (`AskPassGUI`, `GSSAPIClientIdentity`, `GSSAPIKeyExchange`, `GSSAPIRenewalForcesRekey`, `GSSAPIServerIdentity`, `GSSAPITrustDns`, `KeychainIntegration`)
 
 [Full commits list](https://github.com/moul/advanced-ssh-config/compare/v2.2.0...master)
 
@@ -329,9 +393,16 @@ docker run -it --rm -v ~/.ssh:/.ssh moul/assh --help
 
 * [v1](https://github.com/moul/advanced-ssh-config/tree/v1) (2009-2015) - The original implementation. It worked quite well, but was a lot slower, less portable, harder to install for the user and harder to work on to develop new features and fix bugs
 
+## Troubleshooting
+
+#### How to configure resolver to parse `/etc/hosts` and/or handle **mDNS** requests ?
+
+**assh** resolves hostnames using the system built-in resolver, depending on the OS, you can enable new features and/or change modules order.
+
+* [Linux - nsswitch documentation](http://man7.org/linux/man-pages/man5/nsswitch.conf.5.html)
+* [Linux - mDNS support (nss-mdns)](http://0pointer.de/lennart/projects/nss-mdns/)
+* [Mac OS X - `/etc/resolv.conf` documentation](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man5/resolver.5.html)
+
 ## License
 
 © 2009-2016 Manfred Touron - MIT License
-
-
-[![ASSH logo - Advanced SSH Config logo](https://raw.githubusercontent.com/moul/advanced-ssh-config/develop/assets/assh.jpg)](https://github.com/moul/advanced-ssh-config)

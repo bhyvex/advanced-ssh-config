@@ -36,6 +36,7 @@ hosts:
     - aaa
     - bbb
     - aaa
+    NoControlMasterMkdir: true
 
   fff:
     Inherits:
@@ -70,6 +71,18 @@ hosts:
     Inherits:
     - mmm
     User: nnnn
+
+  ooo1:
+    Port: 23
+    Aliases:
+    - ooo11
+    - ooo12
+
+  ooo2:
+    Port: 24
+    Aliases:
+    - ooo21
+    - ooo22
 
 templates:
 
@@ -111,10 +124,11 @@ func dummyConfig() *Config {
 		HostName: "1.2.3.4",
 	}
 	config.Hosts["titi"] = Host{
-		HostName:     "tata",
-		Port:         "23",
-		User:         "moul",
-		ProxyCommand: "nc -v 4242",
+		HostName:             "tata",
+		Port:                 "23",
+		User:                 "moul",
+		ProxyCommand:         "nc -v 4242",
+		NoControlMasterMkdir: "true",
 	}
 	config.Hosts["tonton"] = Host{
 		ResolveNameservers: []string{"a.com", "1.2.3.4"},
@@ -148,6 +162,118 @@ func dummyConfig() *Config {
 		Port:     "26",
 		Inherits: []string{"mmm"},
 	}
+	config.Hosts["ooo1"] = Host{
+		Port:    "23",
+		Aliases: []string{"ooo11", "ooo12"},
+	}
+	config.Hosts["ooo2"] = Host{
+		Port:    "24",
+		Aliases: []string{"ooo21", "ooo22"},
+	}
+	config.Hosts["zzz"] = Host{
+		// ssh-config fields
+		AddressFamily:                   "any",
+		AskPassGUI:                      "yes",
+		BatchMode:                       "no",
+		BindAddress:                     "",
+		CanonicalDomains:                "42.am",
+		CanonicalizeFallbackLocal:       "no",
+		CanonicalizeHostname:            "yes",
+		CanonicalizeMaxDots:             "1",
+		CanonicalizePermittedCNAMEs:     "*.a.example.com:*.b.example.com:*.c.example.com",
+		ChallengeResponseAuthentication: "yes",
+		CheckHostIP:                     "yes",
+		Cipher:                          "blowfish",
+		Ciphers:                         "aes128-ctr,aes192-ctr,aes256-ctr",
+		ClearAllForwardings:             "yes",
+		Compression:                     "yes",
+		CompressionLevel:                6,
+		ConnectionAttempts:              "1",
+		ConnectTimeout:                  10,
+		ControlMaster:                   "yes",
+		ControlPath:                     "/tmp/%L-%l-%n-%p-%u-%r-%C-%h",
+		ControlPersist:                  "yes",
+		DynamicForward:                  "0.0.0.0:4242",
+		EnableSSHKeysign:                "yes",
+		EscapeChar:                      "~",
+		ExitOnForwardFailure:            "yes",
+		FingerprintHash:                 "sha256",
+		ForwardAgent:                    "yes",
+		ForwardX11:                      "yes",
+		ForwardX11Timeout:               42,
+		ForwardX11Trusted:               "yes",
+		GatewayPorts:                    "yes",
+		GlobalKnownHostsFile:            "/etc/ssh/ssh_known_hosts",
+		GSSAPIAuthentication:            "no",
+		GSSAPIKeyExchange:               "no",
+		GSSAPIClientIdentity:            "moul",
+		GSSAPIServerIdentity:            "gssapi.example.com",
+		GSSAPIDelegateCredentials:       "no",
+		GSSAPIRenewalForcesRekey:        "no",
+		GSSAPITrustDns:                  "no",
+		HashKnownHosts:                  "no",
+		HostbasedAuthentication:         "no",
+		HostbasedKeyTypes:               "*",
+		HostKeyAlgorithms:               "ecdsa-sha2-nistp256-cert-v01@openssh.com",
+		HostKeyAlias:                    "z",
+		IdentitiesOnly:                  "yes",
+		IdentityFile:                    "~/.ssh/identity",
+		IgnoreUnknown:                   "testtest", // FIXME: looks very interesting to generate .ssh/config without comments !
+		IPQoS:                           "lowdelay",
+		KbdInteractiveAuthentication: "yes",
+		KbdInteractiveDevices:        "bsdauth",
+		KeychainIntegration:          "yes",
+		KexAlgorithms:                "curve25519-sha256@libssh.org", // for all algorithms/ciphers, we could have an "assh diagnose" that warns about unsafe connections
+		LocalCommand:                 "echo %h > /tmp/logs",
+		LocalForward:                 "0.0.0.0:1234", // FIXME: may be a list
+		LogLevel:                     "DEBUG3",
+		MACs:                         "umac-64-etm@openssh.com,umac-128-etm@openssh.com",
+		Match:                        "all",
+		NoHostAuthenticationForLocalhost: "yes",
+		NumberOfPasswordPrompts:          "3",
+		PasswordAuthentication:           "yes",
+		PermitLocalCommand:               "yes",
+		PKCS11Provider:                   "/a/b/c/pkcs11.so",
+		Port:                             "22",
+		PreferredAuthentications: "gssapi-with-mic,hostbased,publickey",
+		Protocol:                 "2",
+		ProxyUseFdpass:           "no",
+		PubkeyAuthentication:     "yes",
+		RekeyLimit:               "default none",
+		RemoteForward:            "0.0.0.0:1234",
+		RequestTTY:               "yes",
+		RevokedHostKeys:          "/a/revoked-keys",
+		RhostsRSAAuthentication:  "no",
+		RSAAuthentication:        "yes",
+		SendEnv:                  "CUSTOM_*,TEST",
+		ServerAliveCountMax:      3,
+		ServerAliveInterval:      0,
+		StreamLocalBindMask:      "0177",
+		StreamLocalBindUnlink:    "no",
+		StrictHostKeyChecking:    "ask",
+		TCPKeepAlive:             "yes",
+		Tunnel:                   "yes",
+		TunnelDevice:             "any:any",
+		UpdateHostKeys:           "ask",
+		UsePrivilegedPort:        "no",
+		User:                     "moul",
+		UserKnownHostsFile:       "~/.ssh/known_hosts ~/.ssh/known_hosts2",
+		VerifyHostKeyDNS:         "no",
+		VisualHostKey:            "yes",
+		XAuthLocation:            "xauth",
+
+		// ssh-config fields with a different behavior
+		ProxyCommand: "nc %h %p",
+		HostName:     "zzz.com",
+
+		// assh fields
+		isDefault:          false,
+		Inherits:           []string{},
+		Gateways:           []string{},
+		Aliases:            []string{},
+		ResolveNameservers: []string{},
+		ResolveCommand:     "",
+	}
 	config.applyMissingNames()
 	return config
 }
@@ -156,7 +282,7 @@ func TestConfig(t *testing.T) {
 	Convey("Testing dummyConfig", t, func() {
 		config := dummyConfig()
 
-		So(len(config.Hosts), ShouldEqual, 9)
+		So(len(config.Hosts), ShouldEqual, 12)
 
 		So(config.Hosts["toto"].HostName, ShouldEqual, "1.2.3.4")
 		So(config.Hosts["toto"].Port, ShouldEqual, "")
@@ -166,6 +292,7 @@ func TestConfig(t *testing.T) {
 		So(config.Hosts["titi"].HostName, ShouldEqual, "tata")
 		So(config.Hosts["titi"].User, ShouldEqual, "moul")
 		So(config.Hosts["titi"].ProxyCommand, ShouldEqual, "nc -v 4242")
+		So(BoolVal(config.Hosts["titi"].NoControlMasterMkdir), ShouldBeTrue)
 		So(config.Hosts["titi"].Port, ShouldEqual, "23")
 		So(config.Hosts["titi"].isDefault, ShouldEqual, false)
 
@@ -201,7 +328,7 @@ func TestConfig_LoadConfig(t *testing.T) {
 			config := New()
 			err := config.LoadConfig(strings.NewReader(yamlConfig))
 			So(err, ShouldBeNil)
-			So(len(config.Hosts), ShouldEqual, 13)
+			So(len(config.Hosts), ShouldEqual, 15)
 			So(config.Hosts["aaa"].HostName, ShouldEqual, "1.2.3.4")
 			So(config.Hosts["aaa"].Port, ShouldEqual, "")
 			So(config.Hosts["aaa"].User, ShouldEqual, "")
@@ -230,14 +357,28 @@ func TestConfig_JsonString(t *testing.T) {
 			expected := `{
   "hosts": {
     "*.ddd": {
-      "HostName": "1.3.5.7",
-      "PasswordAuthentication": "yes"
+      "PasswordAuthentication": "yes",
+      "HostName": "1.3.5.7"
     },
     "empty": {},
     "nnn": {
       "Port": "26",
       "Inherits": [
         "mmm"
+      ]
+    },
+    "ooo1": {
+      "Port": "23",
+      "Aliases": [
+        "ooo11",
+        "ooo12"
+      ]
+    },
+    "ooo2": {
+      "Port": "24",
+      "Aliases": [
+        "ooo21",
+        "ooo22"
       ]
     },
     "tata": {
@@ -249,10 +390,11 @@ func TestConfig_JsonString(t *testing.T) {
       ]
     },
     "titi": {
-      "HostName": "tata",
       "Port": "23",
       "User": "moul",
-      "ProxyCommand": "nc -v 4242"
+      "HostName": "tata",
+      "ProxyCommand": "nc -v 4242",
+      "NoControlMasterMkdir": "true"
     },
     "tonton": {
       "ResolveNameservers": [
@@ -277,13 +419,104 @@ func TestConfig_JsonString(t *testing.T) {
         "direct",
         "1.2.3.4"
       ]
+    },
+    "zzz": {
+      "AddressFamily": "any",
+      "AskPassGUI": "yes",
+      "BatchMode": "no",
+      "CanonicalDomains": "42.am",
+      "CanonicalizeFallbackLocal": "no",
+      "CanonicalizeHostname": "yes",
+      "CanonicalizeMaxDots": "1",
+      "CanonicalizePermittedCNAMEs": "*.a.example.com:*.b.example.com:*.c.example.com",
+      "ChallengeResponseAuthentication": "yes",
+      "CheckHostIP": "yes",
+      "Cipher": "blowfish",
+      "Ciphers": "aes128-ctr,aes192-ctr,aes256-ctr",
+      "ClearAllForwardings": "yes",
+      "Compression": "yes",
+      "CompressionLevel": 6,
+      "ConnectionAttempts": "1",
+      "ConnectTimeout": 10,
+      "ControlMaster": "yes",
+      "ControlPath": "/tmp/%L-%l-%n-%p-%u-%r-%C-%h",
+      "ControlPersist": "yes",
+      "DynamicForward": "0.0.0.0:4242",
+      "EnableSSHKeysign": "yes",
+      "EscapeChar": "~",
+      "ExitOnForwardFailure": "yes",
+      "FingerprintHash": "sha256",
+      "ForwardAgent": "yes",
+      "ForwardX11": "yes",
+      "ForwardX11Timeout": 42,
+      "ForwardX11Trusted": "yes",
+      "GatewayPorts": "yes",
+      "GlobalKnownHostsFile": "/etc/ssh/ssh_known_hosts",
+      "GSSAPIAuthentication": "no",
+      "GSSAPIClientIdentity": "moul",
+      "GSSAPIDelegateCredentials": "no",
+      "GSSAPIKeyExchange": "no",
+      "GSSAPIRenewalForcesRekey": "no",
+      "GSSAPIServerIdentity": "gssapi.example.com",
+      "GSSAPITrustDns": "no",
+      "HashKnownHosts": "no",
+      "HostbasedAuthentication": "no",
+      "HostbasedKeyTypes": "*",
+      "HostKeyAlgorithms": "ecdsa-sha2-nistp256-cert-v01@openssh.com",
+      "HostKeyAlias": "z",
+      "IdentitiesOnly": "yes",
+      "IdentityFile": "~/.ssh/identity",
+      "IgnoreUnknown": "testtest",
+      "IPQoS": "lowdelay",
+      "KbdInteractiveAuthentication": "yes",
+      "KbdInteractiveDevices": "bsdauth",
+      "KexAlgorithms": "curve25519-sha256@libssh.org",
+      "KeychainIntegration": "yes",
+      "LocalCommand": "echo %h \u003e /tmp/logs",
+      "LocalForward": "0.0.0.0:1234",
+      "LogLevel": "DEBUG3",
+      "MACs": "umac-64-etm@openssh.com,umac-128-etm@openssh.com",
+      "Match": "all",
+      "NoHostAuthenticationForLocalhost": "yes",
+      "NumberOfPasswordPrompts": "3",
+      "PasswordAuthentication": "yes",
+      "PermitLocalCommand": "yes",
+      "PKCS11Provider": "/a/b/c/pkcs11.so",
+      "Port": "22",
+      "PreferredAuthentications": "gssapi-with-mic,hostbased,publickey",
+      "Protocol": "2",
+      "ProxyUseFdpass": "no",
+      "PubkeyAuthentication": "yes",
+      "RekeyLimit": "default none",
+      "RemoteForward": "0.0.0.0:1234",
+      "RequestTTY": "yes",
+      "RevokedHostKeys": "/a/revoked-keys",
+      "RhostsRSAAuthentication": "no",
+      "RSAAuthentication": "yes",
+      "SendEnv": "CUSTOM_*,TEST",
+      "ServerAliveCountMax": 3,
+      "StreamLocalBindMask": "0177",
+      "StreamLocalBindUnlink": "no",
+      "StrictHostKeyChecking": "ask",
+      "TCPKeepAlive": "yes",
+      "Tunnel": "yes",
+      "TunnelDevice": "any:any",
+      "UpdateHostKeys": "ask",
+      "UsePrivilegedPort": "no",
+      "User": "moul",
+      "UserKnownHostsFile": "~/.ssh/known_hosts ~/.ssh/known_hosts2",
+      "VerifyHostKeyDNS": "no",
+      "VisualHostKey": "yes",
+      "XAuthLocation": "xauth",
+      "HostName": "zzz.com",
+      "ProxyCommand": "nc %h %p"
     }
   },
   "templates": {
     "mmm": {
-      "HostName": "5.5.5.5",
       "Port": "25",
       "User": "mmmm",
+      "HostName": "5.5.5.5",
       "Inherits": [
         "tata"
       ]
@@ -314,23 +547,24 @@ func TestConfig_JsonString(t *testing.T) {
       "HostName": "1.2.3.4"
     },
     "bbb": {
-      "HostName": "$ENV_VAR_HOSTNAME",
       "IdentityFile": "${NON_EXISTING_ENV_VAR}",
       "LocalCommand": "${ENV_VAR_LOCALCOMMAND:-hello}",
       "Port": "${ENV_VAR_PORT}",
-      "User": "user-$ENV_VAR_USER-user"
+      "User": "user-$ENV_VAR_USER-user",
+      "HostName": "$ENV_VAR_HOSTNAME"
     },
     "ccc": {
-      "HostName": "5.6.7.8",
       "Port": "24",
-      "User": "toor"
+      "User": "toor",
+      "HostName": "5.6.7.8"
     },
     "eee": {
       "Inherits": [
         "aaa",
         "bbb",
         "aaa"
-      ]
+      ],
+      "NoControlMasterMkdir": "true"
     },
     "fff": {
       "Inherits": [
@@ -366,6 +600,20 @@ func TestConfig_JsonString(t *testing.T) {
       "User": "nnnn",
       "Inherits": [
         "mmm"
+      ]
+    },
+    "ooo1": {
+      "Port": "23",
+      "Aliases": [
+        "ooo11",
+        "ooo12"
+      ]
+    },
+    "ooo2": {
+      "Port": "24",
+      "Aliases": [
+        "ooo21",
+        "ooo22"
       ]
     }
   },
@@ -578,7 +826,7 @@ func TestConfig_LoadFiles(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(config.includedFiles[file.Name()], ShouldEqual, true)
 			So(len(config.includedFiles), ShouldEqual, 1)
-			So(len(config.Hosts), ShouldEqual, 13)
+			So(len(config.Hosts), ShouldEqual, 15)
 			So(config.Hosts["aaa"].HostName, ShouldEqual, "1.2.3.4")
 			So(config.Hosts["aaa"].Port, ShouldEqual, "")
 			So(config.Hosts["aaa"].User, ShouldEqual, "")
@@ -606,7 +854,7 @@ func TestConfig_LoadFiles(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(config.includedFiles[file.Name()], ShouldEqual, true)
 			So(len(config.includedFiles), ShouldEqual, 1)
-			So(len(config.Hosts), ShouldEqual, 13)
+			So(len(config.Hosts), ShouldEqual, 15)
 			So(config.Hosts["aaa"].HostName, ShouldEqual, "1.2.3.4")
 			So(config.Hosts["aaa"].Port, ShouldEqual, "")
 			So(config.Hosts["aaa"].User, ShouldEqual, "")
@@ -809,6 +1057,45 @@ func TestConfig_GetHost(t *testing.T) {
 			So(host.Port, ShouldEqual, "26")
 			So(host.Gateways, ShouldResemble, []string{"titi", "direct", "1.2.3.4"})
 		})
+
+		Convey("Aliases", FailureContinues, func() {
+			host, err = config.GetHost("ooo1")
+			So(err, ShouldBeNil)
+			So(host.name, ShouldEqual, "ooo1")
+			So(host.Aliases, ShouldResemble, []string{
+				"ooo11",
+				"ooo12",
+			})
+			So(host.Port, ShouldEqual, "23")
+
+			host, err = config.GetHost("ooo2")
+			So(err, ShouldBeNil)
+			So(host.name, ShouldEqual, "ooo2")
+			So(host.Aliases, ShouldResemble, []string{
+				"ooo21",
+				"ooo22",
+			})
+			So(host.Port, ShouldEqual, "24")
+
+			host, err = config.GetHost("ooo11")
+			So(err, ShouldBeNil)
+			So(host.name, ShouldEqual, "ooo11")
+			So(host.Aliases, ShouldResemble, []string{
+				"ooo11",
+				"ooo12",
+			})
+			So(host.Port, ShouldEqual, "23")
+
+			host, err = config.GetHost("ooo22")
+			So(err, ShouldBeNil)
+			So(host.name, ShouldEqual, "ooo22")
+			So(host.Aliases, ShouldResemble, []string{
+				"ooo21",
+				"ooo22",
+			})
+			So(host.Port, ShouldEqual, "24")
+
+		})
 	})
 }
 
@@ -859,7 +1146,7 @@ func TestConfig_WriteSshConfig(t *testing.T) {
 		err := config.WriteSshConfigTo(&buffer)
 		So(err, ShouldBeNil)
 
-		expected := `# ssh config generated by advanced-ssh-config
+		expected := `# more info: https://github.com/moul/advanced-ssh-config
 
 # host-based configuration
 Host *.ddd
@@ -874,8 +1161,33 @@ Host nnn
   User mmmm
   # ProxyCommand nc -v 4242
   # HostName: 5.5.5.5
+  # NoControlMasterMkdir: true
   # Inherits: [mmm]
   # Gateways: [titi, direct, 1.2.3.4]
+
+Host ooo1
+  Port 23
+  # Aliases: [ooo11, ooo12]
+
+Host ooo11
+  Port 23
+  # AliasOf: ooo1
+
+Host ooo12
+  Port 23
+  # AliasOf: ooo1
+
+Host ooo2
+  Port 24
+  # Aliases: [ooo21, ooo22]
+
+Host ooo21
+  Port 24
+  # AliasOf: ooo2
+
+Host ooo22
+  Port 24
+  # AliasOf: ooo2
 
 Host tata
   PasswordAuthentication yes
@@ -883,6 +1195,7 @@ Host tata
   User moul
   # ProxyCommand nc -v 4242
   # HostName: 1.2.3.4
+  # NoControlMasterMkdir: true
   # Inherits: [tutu, titi, toto, tutu]
   # Gateways: [titi, direct, 1.2.3.4]
 
@@ -891,6 +1204,7 @@ Host titi
   User moul
   # ProxyCommand nc -v 4242
   # HostName: tata
+  # NoControlMasterMkdir: true
 
 Host tonton
   # ResolveNameservers: [a.com, 1.2.3.4]
@@ -908,12 +1222,104 @@ Host tutu
   # Inherits: [toto, tutu, *.ddd]
   # Gateways: [titi, direct, 1.2.3.4]
 
+Host zzz
+  AddressFamily any
+  AskPassGUI yes
+  BatchMode no
+  CanonicalDomains 42.am
+  CanonicalizeFallbackLocal no
+  CanonicalizeHostname yes
+  CanonicalizeMaxDots 1
+  CanonicalizePermittedCNAMEs *.a.example.com:*.b.example.com:*.c.example.com
+  ChallengeResponseAuthentication yes
+  CheckHostIP yes
+  Cipher blowfish
+  Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+  ClearAllForwardings yes
+  Compression yes
+  CompressionLevel 6
+  ConnectionAttempts 1
+  ConnectTimeout 10
+  ControlMaster yes
+  ControlPath /tmp/%L-%l-%n-%p-%u-%r-%C-%h
+  ControlPersist yes
+  DynamicForward 0.0.0.0:4242
+  EnableSSHKeysign yes
+  EscapeChar ~
+  ExitOnForwardFailure yes
+  FingerprintHash sha256
+  ForwardAgent yes
+  ForwardX11 yes
+  ForwardX11Timeout 42
+  ForwardX11Trusted yes
+  GatewayPorts yes
+  GlobalKnownHostsFile /etc/ssh/ssh_known_hosts
+  GSSAPIAuthentication no
+  GSSAPIClientIdentity moul
+  GSSAPIDelegateCredentials no
+  GSSAPIKeyExchange no
+  GSSAPIRenewalForcesRekey no
+  GSSAPIServerIdentity gssapi.example.com
+  GSSAPITrustDns no
+  HashKnownHosts no
+  HostbasedAuthentication no
+  HostbasedKeyTypes *
+  HostKeyAlgorithms ecdsa-sha2-nistp256-cert-v01@openssh.com
+  HostKeyAlias z
+  IdentitiesOnly yes
+  IdentityFile ~/.ssh/identity
+  IgnoreUnknown testtest
+  IPQoS lowdelay
+  KbdInteractiveAuthentication yes
+  KbdInteractiveDevices bsdauth
+  KexAlgorithms curve25519-sha256@libssh.org
+  KeychainIntegration yes
+  LocalCommand echo %h > /tmp/logs
+  LocalForward 0.0.0.0:1234
+  LogLevel DEBUG3
+  MACs umac-64-etm@openssh.com,umac-128-etm@openssh.com
+  Match all
+  NoHostAuthenticationForLocalhost yes
+  NumberOfPasswordPrompts 3
+  PasswordAuthentication yes
+  PermitLocalCommand yes
+  PKCS11Provider /a/b/c/pkcs11.so
+  Port 22
+  PreferredAuthentications gssapi-with-mic,hostbased,publickey
+  Protocol 2
+  ProxyUseFdpass no
+  PubkeyAuthentication yes
+  RekeyLimit default none
+  RemoteForward 0.0.0.0:1234
+  RequestTTY yes
+  RevokedHostKeys /a/revoked-keys
+  RhostsRSAAuthentication no
+  RSAAuthentication yes
+  SendEnv CUSTOM_*,TEST
+  ServerAliveCountMax 3
+  StreamLocalBindMask 0177
+  StreamLocalBindUnlink no
+  StrictHostKeyChecking ask
+  TCPKeepAlive yes
+  Tunnel yes
+  TunnelDevice any:any
+  UpdateHostKeys ask
+  UsePrivilegedPort no
+  User moul
+  UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts2
+  VerifyHostKeyDNS no
+  VisualHostKey yes
+  XAuthLocation xauth
+  # ProxyCommand nc %h %p
+  # HostName: zzz.com
+
 # global configuration
 Host *
   Port 22
   User root
   ProxyCommand assh proxy --port=%p %h
 `
-		So(buffer.String(), ShouldEqual, expected)
+		output := strings.Join(strings.Split(buffer.String(), "\n")[3:], "\n")
+		So(output, ShouldEqual, expected)
 	})
 }
